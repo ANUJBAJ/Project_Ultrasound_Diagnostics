@@ -1,0 +1,23 @@
+Best_Estimator -> Pipeline(steps=[('standardisation', StandardScaler()),
+                ('feat', SelectFpr(alpha=0.01999999999999999)),
+                ('classifier', DecisionTreeClassifier())])
+Best_Params -> {'feat__alpha': 0.01999999999999999, 'feat': SelectFpr()}
+Best_Score -> 0.7351400180668474
+Best_Parameters -> {'feat__alpha': 0.01999999999999999, 'feat': SelectFpr()}
+the training set accuracy -> 1.0
+the test set accuracy -> 0.9493670886075949
+the training set precsion -> 1.0
+the test set precsion -> 0.25
+the training set recall -> 1.0
+the test set recall -> 0.07142857142857142
+the training F1 -> 1.0
+the test F1 -> 0.1111111111111111
+:the training ROC -> 1.0
+the test ROC -> 0.5307473982970671
+:the test -> -1    302
+ 1     14
+Name: count, dtype: int64
+:the train -> -1    1170
+ 1     408
+Name: count, dtype: int64
+:
