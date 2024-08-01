@@ -1,0 +1,25 @@
+Best_Estimator -> Pipeline(steps=[('standardisation', StandardScaler()),
+                ('feat', SelectFpr(alpha=0.08)),
+                ('classifier',
+                 RandomForestClassifier(criterion='entropy', max_depth=3,
+                                        n_estimators=130))])
+Best_Params -> {'standardisation': StandardScaler(), 'feat__alpha': 0.08, 'feat': SelectFpr(), 'classifier__n_estimators': 130, 'classifier__max_depth': 3, 'classifier__criterion': 'entropy', 'classifier': RandomForestClassifier()}
+Best_Score -> 1.0
+Best_Parameters -> {'standardisation': StandardScaler(), 'feat__alpha': 0.08, 'feat': SelectFpr(), 'classifier__n_estimators': 130, 'classifier__max_depth': 3, 'classifier__criterion': 'entropy', 'classifier': RandomForestClassifier()}
+the training set accuracy -> 1.0
+the test set accuracy -> 1.0
+the training set precsion -> 1.0
+the test set precsion -> 1.0
+the training set recall -> 1.0
+the test set recall -> 1.0
+the training F1 -> 1.0
+the test F1 -> 1.0
+:the training ROC -> 1.0
+the test ROC -> 1.0
+:the test -> 0    302
+1     14
+Name: count, dtype: int64
+:the train -> 0    1170
+1      91
+Name: count, dtype: int64
+:

@@ -17,15 +17,17 @@ from sklearn import svm
 from sklearn.feature_selection import SelectKBest,SelectFpr
 from sklearn.pipeline import Pipeline
 import imblearn 
+import xgboost as xgb
 import warnings
 warnings.filterwarnings('ignore')
 #-----------------------------++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------------
 df_main = pd.read_csv('Ultrasound_1.csv')
+df_main.loc[df_main['Pass/Fail'] == -1] = 0
 df = deepcopy(df_main)
 print(df['Pass/Fail'].value_counts()/df.shape[0])
 y = df.pop('Pass/Fail').values
 
-
+#////////////////////////////<><><><>><><><>><>>>>><>><>>><>><>>>?/////////////////////////////////////////////////////////////////////////////////
 class Processing_Df:
     def __init__(self,df_lcl):
         self.df_cl = df_lcl
@@ -131,9 +133,6 @@ class Processing_Df:
         return self.df_cl 
 #-------------------------------------------------------------+++++++++++++++++-----------------------------------------------------------------------
 df_o = Processing_Df(df)
-
-#l_f,l_int,l_o = df_o.df_num()
-#df_new  =  df_o.main()
 df_new = df_o()
 #-------------------------<><><><><><><><><><><><><><><><><<><><><><><>------------------------------------------------------------------------------
 #----------------------------------<><><><><><><><><><><><><><><><><>-------------------------------------------------------------------------------
@@ -141,105 +140,114 @@ x = df_new
 X_train,X_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=42)
 #-------------------------------<><><><><><><><><><><><><><><><><>>--------------------------------------------------------------------------
 #X_OS = imblearn.over_sampling.SMOTE(k_neighbors=8,sampling_strategy = 0.45)
-X_OS = imblearn.over_sampling.SMOTE()
-X_OS_A = imblearn.over_sampling.ADASYN(sampling_strategy=0.35,n_neighbors=10)
-#X_OS_A = imblearn.over_sampling.ADASYN()
-X_train, y_train = X_OS_A.fit_resample(X_train,y_train)
-y_res = deepcopy(y_train)
-y_res = pd.DataFrame(pd.Series(y_res),index = np.arange(0,y_res.shape[0]),columns = ['target'])
+# X_OS = imblearn.over_sampling.SMOTE()
+# X_OS_A = imblearn.over_sampling.ADASYN(sampling_strategy=0.35,n_neighbors=10)
+# #X_OS_A = imblearn.over_sampling.ADASYN()
+# X_train, y_train = X_OS_A.fit_resample(X_train,y_train)
+# y_res = deepcopy(y_train)
+# y_res = pd.DataFrame(pd.Series(y_res),index = np.arange(0,y_res.shape[0]),columns = ['target'])
 # #----------------------------------------------------------------------------------------------------------------------------------------------------
 dt=DecisionTreeClassifier()
 rf=RandomForestClassifier()
 Sp_Vc_Mc = svm.SVC()
 sel_feat =SelectFpr() 
+mdl_boost=xgb.XGBClassifier()
+Mdl_scal = StandardScaler()
 #------------------------------------<><><><><><><><><><><><><><><><><><><><><><><-----------------------------------------------------------------------------------------------------
+ppln = Pipeline([('standardisation',Mdl_scal),('feat',sel_feat),('classifier',dt)])
 #------------------------------<><><><><><><><><><><><><><><><><><>-----------------------------------------------------------------------------------
-parameters_grid_GRD = [{'standardisation' : [StandardScaler()]},
-                    {'feat' : [sel_feat],
-                    'feat__alpha' : [0.1,0.08,0.05,0.02]
-                    },
-                    {'feat' : [SelectKBest()],
-                     'feat__k' : [20,40,60,80,100,120,140,160,180]
+# parameters_grid_GRD = [{'standardisation' : [Mdl_scal]},
+#                     {'feat' : [sel_feat],
+#                     'feat__alpha' : [0.1,0.08,0.05,0.02]
+#                     },
+#                     {'feat' : [SelectKBest()],
+#                      'feat__k' : [20,40,60,80,100,120,140,160,180]
 
-                    },
-                    {'smote' : [X_OS],
-                      'smote__k_neighbors' : [3,5,7,9,11],
-                       'smote__sampling_strategy' : [0.25,0.35,0.45,0.50]
+#                     },
+#                     {'smote' : [X_OS],
+#                       'smote__k_neighbors' : [3,5,7,9,11],
+#                        'smote__sampling_strategy' : [0.25,0.35,0.45,0.50]
 
-                    }, 
-                    {'smote' : [X_OS_A],
-                      'smote__n_neighbors' : [3,5,8,10],
-                       'smote__sampling_strategy' : [0.25,0.35,0.45,0.50]
-                     },
+#                     }, 
+#                     {'smote' : [X_OS_A],
+#                       'smote__n_neighbors' : [3,5,8,10],
+#                        'smote__sampling_strategy' : [0.25,0.35,0.45,0.50]
+#                      },
                     
-                   {'classifier' : [dt],
-                   'classifier__max_depth' :  [5,8,10],
-                   'classifier__min_samples_leaf':[2,4,6,8,10],
-                   'classifier__criterion' : ['gini' , 'entropy'],
-                   #'max_features' : ['log2' , 'sqrt']
-                  },
+#                    {'classifier' : [dt],
+#                    'classifier__max_depth' :  [5,8,10],
+#                    'classifier__min_samples_leaf':[2,4,6,8,10],
+#                    'classifier__criterion' : ['gini' , 'entropy'],
+#                    #'max_features' : ['log2' , 'sqrt']
+#                   },
                   
-                  { 'classifier' : [rf],
-                    'classifier__n_estimators' : [50,100,200,300,400],
-                    'classifier__max_depth' : [5,8,10],
-                   'classifier__criterion' : ['gini' , 'entropy'],
-                   #'max_features' : ['log2' , 'sqrt']
-                  },
-                  {'classifier' : [Sp_Vc_Mc],
-                   'classifier__C':[0.1,0.3,0.5,0.7,1.0],
-                   'classifier__degree' : [2,3,4,5],
-                   'classifier__gamma':['scale','auto'],
-                   'classifier__kernel' : ['linear', 'poly', 'rbf', 'sigmoid' ]
+#                   { 'classifier' : [rf],
+#                     'classifier__n_estimators' : [50,100,200,300,400],
+#                     'classifier__max_depth' : [5,8,10],
+#                    'classifier__criterion' : ['gini' , 'entropy'],
+#                    #'max_features' : ['log2' , 'sqrt']
+#                   },
+#                   {'classifier' : [Sp_Vc_Mc],
+#                    'classifier__C':[0.1,0.3,0.5,0.7,1.0],
+#                    'classifier__degree' : [2,3,4,5],
+#                    'classifier__gamma':['scale','auto'],
+#                    'classifier__kernel' : ['linear', 'poly', 'rbf', 'sigmoid' ]
                   
-                   }
-                  ]
-#/////////////////////////////////<><><><><><><><><><><><><><><><><><><><><><<><><>//////////////////////////////////////////////////////////////////////////
-parameters_grid_RNDM = [{'standardisation' : [StandardScaler()]},
-                    {'feat' : [sel_feat],
-                    'feat__alpha' : np.linspace(0.1,0.01,10)
-                    },
-                    {'feat' : [SelectKBest()],
-                     'feat__k' : np.linspace(20,180,10)
-
-                    },
-                    # {'smote' : [X_OS],
-                    #   'smote__k_neighbors' : np.linspace(3,10,6),
-                    #    'smote__sampling_strategy' : np.linspace(0.25,0.50,5)
-
-                    # }, 
-                    # {'smote' : [X_OS_A],
-                    #   'smote__n_neighbors' : np.linspace(3,10,6),
-                    #    'smote__sampling_strategy' : np.linspace(0.5,0.90,5)
-                    #  },
+#                    }
+                  
+#                   ]
+# #/////////////////////////////////<><><><><><><><><><><><><><><><><><><><><><<><><>//////////////////////////////////////////////////////////////////////////
+parameters_grid_RNDM = [
+                   
                     
-                   {'classifier' : [dt],
+                   { 'standardisation': [StandardScaler()],
+                     'feat': [sel_feat],
+                     'feat__alpha': np.linspace(0.1, 0.01, 10),
+                     'classifier' : [dt],
                    'classifier__max_depth' :  np.arange(3,5,3),
                    #'classifier__min_samples_leaf':np.linspace(2,8,4),
                    'classifier__criterion' : ['gini' , 'entropy'],
                    #'max_features' : ['log2' , 'sqrt']
-                  }
+                  },
                   
-                #   { 'classifier' : [rf],
-                #     'classifier__n_estimators' : np.linspace(50,1000,8),
-                #     'classifier__max_depth' : np.linspace(3,10,4),
-                #    'classifier__criterion' : ['gini' , 'entropy'],
-                #    #'max_features' : ['log2' , 'sqrt']
-                #   },
-                #   {'classifier' : [Sp_Vc_Mc],
-                #    'classifier__C':np.linspace(0.1,1.0,6),
-                #    'classifier__degree' : np.linspace(1,5,5),
-                #    'classifier__gamma':['scale','auto'],
-                #    'classifier__kernel' : ['linear', 'poly', 'rbf', 'sigmoid' ]
+                  { 'standardisation': [StandardScaler()],
+                    'feat': [sel_feat],
+                    'feat__alpha': np.linspace(0.1, 0.01, 10),
+                    'classifier' : [rf],
+                    'classifier__n_estimators' : np.arange(50,400,8),
+                    'classifier__max_depth' : np.arange(3,10,4),
+                   'classifier__criterion' : ['gini' , 'entropy'],
+                   #'max_features' : ['log2' , 'sqrt']
+                  },
+                  { 'standardisation': [StandardScaler()],
+                    'feat': [sel_feat],
+                    'feat__alpha': np.linspace(0.1, 0.01, 10),
+                    'classifier' : [Sp_Vc_Mc],
+                   'classifier__C':np.arange(0.1,1.0,6),
+                   'classifier__degree' : np.arange(1,5,5),
+                   'classifier__gamma':['scale','auto'],
+                   'classifier__kernel' : ['linear', 'poly', 'rbf', 'sigmoid' ]
                   
-                #    }
+                   },
+                      { 'standardisation': [StandardScaler()],
+                         'feat': [sel_feat],
+                            'feat__alpha': np.linspace(0.1, 0.01, 10),
+                        'classifier' : [mdl_boost],
+                      'classifier__max_depth' : np.arange(2,5,3),
+                      'classifier__n_estimators':np.arange(100,500,5),
+                      #'classifier__gamma' : np.arange(0.75,0.95,5)
+                      'classifier__eta' : np.arange(0.1,0.5,)
+                       
+                   }
                   ]
 #ppln = imblearn.pipeline.Pipeline([('smote',X_OS_A),('standardisation',StandardScaler()),('feat',sel_feat),('classifier',dt)])
-ppln = imblearn.pipeline.Pipeline([('standardisation',StandardScaler()),('feat',sel_feat),('classifier',dt)])
+#ppln = imblearn.pipeline.Pipeline([('standardisation',StandardScaler()),('feat',sel_feat),('classifier',xgb.XGBClassifier())])
+#ppln = Pipeline([('standardisation',StandardScaler()),('feat',sel_feat),('classifier',dt)])
 #ppln = Pipeline([('classifier',dt)])
 X_test = StandardScaler().fit_transform(X_test)
 #--------------------------------@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-----------------------------------------------------------------------------
 #model_hy_tun = GridSearchCV(ppln, param_grid=parameters_grid_GRD, cv = 5, scoring = {'accuracy': make_scorer(accuracy_score),'re_call': 'precision'},refit='re_call')
-model_hy_tun = RandomizedSearchCV(ppln, param_distributions=parameters_grid_RNDM, cv = 5,n_iter=500 ,scoring = {'re_call': 'recall'},refit='re_call')
+model_hy_tun = RandomizedSearchCV(ppln, param_distributions=parameters_grid_RNDM, cv = 5,n_iter=5 ,scoring = {'re_call': 'precision'},refit='re_call')
 model_hy_tun.fit(X_train, y_train)
 model_best = (model_hy_tun.best_estimator_)
 y_tr_pred = model_best.predict(X_train)
